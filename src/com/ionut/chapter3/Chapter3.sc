@@ -114,14 +114,64 @@ object List {
     case Nil => Nil
     case Cons(x, xs) => Cons(x + 1, transform(xs))
   }
-  def transformFoldR(l : List[Int]) : List[Int] =
+
+  def transformFoldR(l: List[Int]): List[Int] =
     foldRight[Int, List[Int]](l, Nil)((x, xs) => Cons(x + 1, xs))
-  def transformFoldL(l : List[Int]) : List[Int] =
+
+  def transformFoldL(l: List[Int]): List[Int] =
     foldLeft[Int, List[Int]](l, Nil)((xs, x) => Cons(x + 1, xs))
 
   // Ex 3.17
-  def map(l : List[Double]) : List[String] =
+  def map(l: List[Double]): List[String] =
     foldRight[Double, List[String]](l, List())((x, xs) => Cons(x.toString, xs))
+
+  // Ex 3.18
+  def map[A, B](as: List[A])(f: A => B): List[B] =
+    foldRight[A, List[B]](as, List())((x, xs) => Cons(f(x), xs))
+
+  // Ex 3.19
+  def filter[A](as: List[A])(f: A => Boolean): List[A] = as match {
+    case Nil => Nil
+    case Cons(x, xs) if !f(x) => Cons(x, filter(xs)(f))
+    case Cons(x, xs) if f(x) => filter(xs)(f)
+  }
+
+  // Ex 3.20
+  def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] =
+    foldRight[A, List[B]](as, List())((x, xs) => append(f(x), xs))
+
+  // Ex 3.21
+  def filterFlatMap[A](as: List[A])(f: A => Boolean): List[A] =
+    flatMap(as)(a => {
+      if (f(a)) List()
+      else List(a)
+    })
+
+  // Ex 3.22
+  //  def addElementsInLists(l1 : List[Int])(l2 : List[Int]): List[Int] =
+  //    foldRight[Int, List[Int]](l1, List())((x, xs) => Cons(x + 1, xs))
+  def addElementsInLists(l1: List[Int])(l2: List[Int]): List[Int] = {
+    def g(l1: List[Int], l2: List[Int], acc: List[Int]): List[Int] = l1 match {
+      case Nil => acc
+      case Cons(x1, xs1) => l2 match {
+        case Nil => acc
+        case Cons(x2, xs2) => g(xs1, xs2, Cons(x1 + x2, acc))
+      }
+    }
+    g(reverse(l1), reverse(l2), List())
+  }
+
+  // Ex 3.23
+  def addElementsInLists[A](l1: List[A])(l2: List[A])(f: (A, A) => A): List[A] = {
+    def g(l1: List[A], l2: List[A], acc: List[A]): List[A] = l1 match {
+      case Nil => acc
+      case Cons(x1, xs1) => l2 match {
+        case Nil => acc
+        case Cons(x2, xs2) => g(xs1, xs2, Cons(f(x1, x2), acc))
+      }
+    }
+    g(reverse(l1), reverse(l2), List())
+  }
 }
 
 val ex1: List[Double] = Nil
@@ -176,8 +226,26 @@ val appendFoldLRez = List.appendFoldL(List(1, 2, 3, 4), List(6, 7, 8))
 val appendFoldRRez = List.appendFoldR(List(1, 2, 3, 4), List(6, 7, 8))
 
 // Rez Ex 3.16
-val transformRez = List.transform(List(1,2,3,4,5))
-val transformFoldRRez = List.transformFoldR(List(1,2,3,4,5))
+val transformRez = List.transform(List(1, 2, 3, 4, 5))
+val transformFoldRRez = List.transformFoldR(List(1, 2, 3, 4, 5))
 
-// Rex Ex 3.17
-val mapRez = List.map(List(1.0, 2.0 , 3.0, 4.0))
+// Rez Ex 3.17
+val mapDoubleToStringRez = List.map(List(1.0, 2.0, 3.0, 4.0))
+
+// Rez Ex 3.18
+val mapRez2 = List.map[Int, String](List(1, 2, 3, 4, 5))(a => a.toString + "Ion")
+
+// Rez Ex 3.19
+val filterRez = List.filter(List(1, 2, 3, 4, 5, 6))(a => a % 2 == 0)
+
+// Rez Ex 3.20
+val flatMapRez = List.flatMap(List(1, 2, 3))(i => List(i, i))
+
+// Rez Ex 3.21
+val filterFlatMapRez = List.filterFlatMap(List(1, 2, 3, 4, 5, 6))(a => a % 2 == 0)
+
+// Rez Ex 3.22
+val addElementsInListsRez = List.addElementsInLists(List(1, 2, 3))(List(4, 5, 6))
+
+// Rez Ex 3.23
+val addElementsInListsARez = List.addElementsInLists[Int](List(1, 2, 3))(List(4, 5, 6))((a1, a2) => a1 + a2)
